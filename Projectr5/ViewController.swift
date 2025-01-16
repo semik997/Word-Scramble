@@ -16,6 +16,7 @@ class ViewController: UITableViewController {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(promptForAnswer))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(startGame))
         
         if let startWordURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordURL, encoding: .utf8) {
@@ -31,7 +32,7 @@ class ViewController: UITableViewController {
         
     }
 
-    func startGame() {
+    @objc func startGame() {
         title = allWords.randomElement()
         usedWords.removeAll(keepingCapacity: true)
         tableView.reloadData()
@@ -78,17 +79,23 @@ class ViewController: UITableViewController {
                     return
                 } else {
                     errorTitle = "Word not recognized"
-                    errorMessage = "You can't just make them up, you know!"
+                    errorMessage = "You can't just make them up, you know! Word must be 3 and more symbols long"
+                    showErrorMessage(errorTitle: errorTitle, errorMessage: errorMessage)
                 }
             } else {
                 errorTitle = "Word already used"
                 errorMessage = "Be more original!"
+                showErrorMessage(errorTitle: errorTitle, errorMessage: errorMessage)
             }
         } else {
             errorTitle = "Word not possible"
             errorMessage = "You can't spell that word from \(title!.lowercased())."
+            showErrorMessage(errorTitle: errorTitle, errorMessage: errorMessage)
         }
         
+    }
+    
+    func showErrorMessage(errorTitle: String, errorMessage: String) {
         let ac = UIAlertController(title: errorTitle, message: errorMessage, preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "OK", style: .default))
         present(ac, animated: true)
@@ -112,10 +119,14 @@ class ViewController: UITableViewController {
     }
         
     func isReal(word: String) -> Bool {
-        let checker = UITextChecker()
-        let range = NSRange(location: 0, length: word.utf16.count)
-        let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
-        return misspelledRange.location == NSNotFound
+        if word.count >= 3 {
+            let checker = UITextChecker()
+            let range = NSRange(location: 0, length: word.utf16.count)
+            let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
+            return misspelledRange.location == NSNotFound
+        } else {
+            return false
+        }
     }
     
     
